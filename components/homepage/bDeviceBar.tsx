@@ -1,8 +1,12 @@
 'use client';
 import {useEffect, useState, CSSProperties } from 'react';
-interface Props{
-    onTrans: (devices: string[]) => void;
+interface Props {
+  onTrans: (data: {
+    devicesFromComponent: string[];
+    house_deviceFromComponent: string[];
+  }) => void;
 }
+
 
 export default function DeviceBar({onTrans}: Props) {
     const [map, setMap] = useState<{ [key: string]: string[] }>({});
@@ -48,11 +52,15 @@ export default function DeviceBar({onTrans}: Props) {
     function handleHouseChange(houseId: string) {
         setSelectHouse(houseId);
         setDevices(map[houseId] || []);
+        setHouse_device((map[houseId] || []).map(device => `${houseId}#${device}`))
     }
 
     // hàm truyền lại danh sách devices cho trang chính
     function handleTransDevices(){
-        onTrans(devices);
+        onTrans({
+            devicesFromComponent: devices,
+            house_deviceFromComponent: house_device
+        });
     }
 
     return (
