@@ -5,13 +5,14 @@ interface Props {
     devicesFromComponent: string[];
     house_deviceFromComponent: string[];
   }) => void;
+  timestamp: string;
 }
 
 
-export default function DeviceBar({onTrans}: Props) {
+export default function DeviceBar({onTrans, timestamp}: Props) {
     const [map, setMap] = useState<{ [key: string]: string[] }>({});
     const [housename, setHousename] = useState<{ [key: string]: string}>({});
-    const [devicename, setDevicename] = useState<{ [key: string]: string}>({});
+
 
     const [open, setOpen] = useState(false);
     
@@ -24,43 +25,51 @@ export default function DeviceBar({onTrans}: Props) {
     
     // lỗi chưa hiển thị house vì useEffect chưa hoạt động, phải render xong mới hoạt động nhưng khi đó thì selectHouse lúc này là rỗng, nên phải sửa như sau
     useEffect(() => {
-        const rawdata = JSON.parse(localStorage.getItem("deviceId") || "");
+        const rawdata: Record<string, string[]> = JSON.parse(localStorage.getItem("deviceId") || "");
         if(rawdata) {
           setMap(rawdata);
 
-          // đoạn này phải thêm ngay phần house để khi render nó nhận ngay giá trị đầu tiên
+          // lấy danh sách house
           const houses = Object.keys(rawdata);
           if(houses.length > 0){
+
+            // -------------- Lưu ý phần dưới này, để khi render trang lần đầu, nó sẽ gửi API luôn cho thiết bị đầu tiên ----------------------------------------------
+            // xử lý phần UI để nó hiển thị ngay các giá trị hay nói cách khác là gọi luôn API
+            const firstDevices = rawdata[houses[0]] || ""; // lấy giá trị house đầu tiên
+            const firstHouse_device = (rawdata[houses[0]] || []).map((d: string) => `${houses[0]}#${d}`); // lấy danh sách thiết bị đi cùng house đầu tiên rồi ghép nó lại với nhau
+
+            // truyền dữ liệu cho trang cha để gọi API
+            onTrans({
+                devicesFromComponent: firstDevices,
+                house_deviceFromComponent: firstHouse_device,
+            });
+
             setSelectHouse(houses[0] || "");
-            setDevices(map[houses[0]] || []);
+            setDevices(rawdata[houses[0]] || []);
           }
         }
         const alias_house = JSON.parse(localStorage.getItem("alias_house") || "");
         if(alias_house) {
           setHousename(alias_house);
         }
-        const alias_device = JSON.parse(localStorage.getItem("alias_device") || "");
-        if(alias_device) {
-          setDevicename(alias_device);
-        }
     },[]);
 
     const houses = Object.keys(map); // lấy house tách ra
     
-
-
     function handleHouseChange(houseId: string) {
+        // thay đổi house thì truyền luôn giá trị cho trang chính
+        const recentDevices = map[houseId] || []; // lấy danh sách thiết bị tương ứng với house đã được truyền vào
+        const recentHouseDevices = recentDevices.map(dev => `${houseId}#${dev}`);
+
+        //Truyền dữ liệu cho cha
+        onTrans({
+            devicesFromComponent: recentDevices,
+            house_deviceFromComponent: recentHouseDevices
+        })
+
         setSelectHouse(houseId);
         setDevices(map[houseId] || []);
         setHouse_device((map[houseId] || []).map(device => `${houseId}#${device}`))
-    }
-
-    // hàm truyền lại danh sách devices cho trang chính
-    function handleTransDevices(){
-        onTrans({
-            devicesFromComponent: devices,
-            house_deviceFromComponent: house_device
-        });
     }
 
     return (
@@ -73,13 +82,13 @@ export default function DeviceBar({onTrans}: Props) {
                 {open && (
                     <div style={styles.dropdown}>
                         {houses.map((h) => (
-                            <div key={h} style={styles.option} onClick={() => { handleHouseChange(h); setOpen(false); handleTransDevices() }}>{housename[h] || h}</div>
+                            <div key={h} style={styles.option} onClick={() => { handleHouseChange(h); setOpen(false); }}>{housename[h] || h}</div>
                         ))}
                     </div>
                 )}
             </div>
             <div style={{...styles.grid, backgroundColor: '#e8f5e9'}}>
-                <div style={styles.timestamp}> hello </div>
+                <div style={styles.timestamp}> {timestamp} </div>
             </div>
         </div>
     )
@@ -154,7 +163,7 @@ const styles:{
         fontWeight: 'bold',
     },
     timestamp: {
-        fontSize: 14,
-        opacity: 0.7,
+        fontSize: 17,
+        fontWeight: 'bold',
     }
 }

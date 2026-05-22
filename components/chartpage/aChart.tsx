@@ -101,6 +101,14 @@ const sb: { [k: string]: CSSProperties } = {
 // ── Main Component ─────────────────────────────────────────────────────────
 export default function MultiDeviceChart({ raw }: { raw: any[] }) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+
+  // Phần ẩn hiện đường line khi click chọn 
+  // Thêm state trong component
+  const [hidden, setHidden] = useState<Record<string, boolean>>({});
+  function toggleDevice(dev: string) {
+    setHidden((prev) => ({ ...prev, [dev]: !prev[dev] }));
+  }
+
   const metrics = useMemo(() => {
   if (!raw?.length) return []
   const exclude = new Set(["house_device", "timestamp"])
@@ -153,12 +161,25 @@ export default function MultiDeviceChart({ raw }: { raw: any[] }) {
               <div style={s.leftHeader}>
                 <span style={s.metricTitle}>{metric}</span>
                 <div style={s.pills}>
-                  {devices.map((dev, i) => (
-                    <span key={dev} style={{ ...s.pill, backgroundColor: COLORS[i % COLORS.length] + "22", color: COLORS[i % COLORS.length], borderColor: COLORS[i % COLORS.length] + "55" }}>
-                      <span style={{ ...s.pillDot, backgroundColor: COLORS[i % COLORS.length] }} />
-                      #{dev}
-                    </span>
-                  ))}
+                  {devices.map((dev, i) => {
+                    const isHidden = hidden[dev];
+                    return (
+                      <span key={dev} onClick={() => toggleDevice(dev)}
+                      style={{...s.pill,
+                      backgroundColor: COLORS[i % COLORS.length] + "22",
+                      borderColor: COLORS[i % COLORS.length] + "55",
+                      // ← mờ đi khi ẩn, không gạch ngang
+                      color: isHidden ? "#334155" : COLORS[i % COLORS.length],
+                      opacity: isHidden ? 0.35 : 1,
+                      cursor: "pointer",
+                      transition: "opacity 0.1s, color 0.1s",
+                      }}>
+                      <span style={{...s.pillDot,
+                      backgroundColor: isHidden ? "#334155" : COLORS[i % COLORS.length],
+                      transition: "background 0.1s",
+                      }} /> #{dev} </span>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -213,17 +234,15 @@ export default function MultiDeviceChart({ raw }: { raw: any[] }) {
                     <ReferenceLine y={avgVal} stroke="#94A3B8" strokeDasharray="5 3" strokeOpacity={0.4} strokeWidth={1} />
 
                     {devices.map((dev, i) => (
-                      <Area
-                        key={dev}
-                        type="linear"
-                        dataKey={dev}
-                        stroke={COLORS[i % COLORS.length]}
-                        strokeWidth={2}
-                        fill={`url(#g_${safeId(metric)}_${safeId(dev)})`}
-                        dot={false}
-                        activeDot={{ r: 5, fill: COLORS[i % COLORS.length], stroke: "#fff", strokeWidth: 2 }}
-                        connectNulls={true}
-                        isAnimationActive={false}
+                      <Area key={dev} type="linear" dataKey={dev}
+                      stroke={COLORS[i % COLORS.length]}
+                      strokeWidth={2}
+                      fill={`url(#g_${safeId(metric)}_${safeId(dev)})`}
+                      dot={false}
+                      activeDot={{ r: 5, fill: COLORS[i % COLORS.length], stroke: "#fff", strokeWidth: 2 }}
+                      connectNulls={true}
+                      isAnimationActive={false}
+                      hide={hidden[dev] === true}  // ← ẩn line khi click pill
                       />
                     ))}
                   </AreaChart>
@@ -239,7 +258,7 @@ export default function MultiDeviceChart({ raw }: { raw: any[] }) {
 
 // ── Styles ─────────────────────────────────────────────────────────────────
 const s: { [k: string]: CSSProperties } = {
-  wrapper: { padding: 12, display: "flex", flexDirection: "column", gap: 12 },
+  wrapper: { padding: 12, paddingBottom: 56, display: "flex", flexDirection: "column", gap: 12 },
   card: { backgroundColor: "#FFFFFF", borderRadius: 20, border: "1px solid #E2E8F0", padding: "14px 16px 10px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" },
   cardHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 10, flexWrap: "wrap" },
   leftHeader: { display: "flex", flexDirection: "column", gap: 6, flex: 1 },

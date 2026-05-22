@@ -1,16 +1,20 @@
 type Props = {
   title: string;
   value: string | number;
-  unit: string;
-  color: string;
 };
 
 import type { CSSProperties } from 'react';
+import { ParamsColors } from "@/config/paramsColor";
+import { ParamsUnits } from "@/config/paramsUnit";
+import { ParamsNames } from "@/config/paramsName";
 
-export default function InfoCard({ title, value, unit, color }: Props) {
+export default function InfoCard({ title, value }: Props) {
+  const color = ParamsColors[title] || "#1976D2";
+  const unit = ParamsUnits[title] || "";
+  const name = ParamsNames[title] || "";
   return (
     <div style={{ ...styles.card, backgroundColor: color }}>
-      <div style={styles.title}>{title}</div>
+      <div style={styles.title}>{name || title}</div>
       <div style={styles.valueRow}>
         <span style={styles.value}>{value}</span>
         <span style={styles.unit}>{unit}</span>
@@ -28,6 +32,7 @@ const styles: {
 } = {
   card: {
     width: '48%',
+    boxSizing: 'border-box',
     padding: 16, // khoảng cách từ mép card đến nội dung
     borderRadius: 12, // bo góc cho card
     color: '#fff', // màu trắng
@@ -37,8 +42,8 @@ const styles: {
   },
 
   title: {
-    fontSize: 14,
-    opacity: 0.8, // độ mờ cho title
+    fontSize: 16,
+    fontWeight: "bold",
   },
 
   valueRow: {
@@ -53,7 +58,7 @@ const styles: {
   },
 
   unit: {
-    fontSize: 16,
+    fontSize: 13,
     opacity: 0.8, // độ mờ cho unit
   },
 };

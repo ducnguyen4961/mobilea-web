@@ -1,0 +1,15 @@
+export const ParamsUnits: Record<string, string> = {
+  NIR: "mV",
+  VR: "mV",
+  PPFD: "μmol/m⁻¹s⁻²",
+  temperature: "°C",
+  humidity: "%",
+  CO2: "ppm",
+  satur: "g/m³",
+  soil_EC: "mS/cm",
+  soil_mois: "%",
+  soil_temp: "°C",
+  CER_with_CO2: "µmolCO₂ s-1/m",
+  Pre_TR_kabu: "gh-1/株",
+  Pre_TR_mBL: "gh-1/mBL",
+};

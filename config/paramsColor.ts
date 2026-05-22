@@ -1,0 +1,16 @@
+export const ParamsColors: Record<string, string> = {
+  NIR: "#7E57C2",
+  VR: "#5C6BC0",
+  PPFD: "#42A5F5",
+  temperature: "#EF5350",
+  humidity: "#26C6DA",
+  CO2: "#8D6E63",
+  satur: "#66BB6A",
+  soil_EC: "#8E24AA",
+  soil_mois: "#26A69A",
+  soil_temp: "#FF7043",
+  RSSI: "#78909C",
+  CER_with_CO2: "#AB47BC",
+  Pre_TR_kabu: "#29B6F6",
+  Pre_TR_mBL: "#26A69A",
+};

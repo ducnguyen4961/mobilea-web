@@ -1,0 +1,15 @@
+export const ParamsNames: Record<string, string> = {
+  NIR: "NIR",
+  VR: "VR",
+  PPFD: "PPFD",
+  temperature: "温度",
+  humidity: "湿度",
+  CO2: "CO2",
+  satur: "飽差",
+  soil_EC: "土壌EC",
+  soil_mois: "土壌水分",
+  soil_temp: "土壌温度",
+  CER_with_CO2: "CER",
+  Pre_TR_kabu: "Pre.TR(株)",
+  Pre_TR_mBL: "Pre.TR",
+};

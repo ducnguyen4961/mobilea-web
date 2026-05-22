@@ -4,70 +4,173 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 
 import MultiDeviceChart from "@/components/chartpage/aChart";
-import Button from "@/components/chartpage/bButton";
-import Bar from "@/components/chartpage/cBar";
+import Sidebar from "@/components/chartpage/bButton";
+import BottomBar from "@/components/chartpage/cBar";
 import LandscapeOnly from "@/components/chartpage/dLandscape";
+import ChangeButton from "@/components/chartpage/eChange";
+import handleTime from "@/components/chartpage/fHandleTime";
 
-interface ChartProps {
-  raw: string | null;
-}
+// import API để lấy dữ liệu vẽ biểu đồ trong 1 ngày
+import { graphcallAPI1day, graphcallAPI1weekormonth, graphcallAPIcustomize } from "@/services/callAPI";
+
+type DeviceMap = Record<string, string[]>;
+type Payload = {
+  housedeviceIds: string[];
+  starttime?: string; // có thể không có dữ liệu, khác với việc khai báo starttime: string | null, có giá trị nhưng là rỗng
+  endtime?: string;
+};
+
 export default function GraphPage() {
-  const [apiData, setApiData] = useState([])
-  //fake data mẫu
-  useEffect(() => {
-    try {
-      const raw = JSON.parse(localStorage.getItem("rawdata") || "[]")
-      setApiData(raw)
-      console.log("du lieu cam bien", raw)
-    } catch {
-      setApiData([])
-    }
-  }, [])
-
+  const [apiData, setApiData] = useState([]);
   const [active, setActive] = useState("day");
   const router = useRouter();
 
+  // khai báo thời gian bắt đầu và kết thúc
+  const [start, setStart] = useState<string>("");
+  const [end, setEnd] = useState<string>("");
+  // khai báo danh sách thiết bị
+  const [deviceIds, setDeviceIds] = useState<string[]>([]);
+
+  // khai báo biến hiển thị Modal dùng chung để tránh bị lỗi onTrans
+  const [openModal, setOpenModal] = useState(false);
+
+  // khai báo trạng thái vô hiệu hóa nút
+  const [disable, setDisable] = useState(false);
+
+  // khai báo offset nhận từ cBar
+  const [offsets, setOffsets] = useState<number>(0);
+
+  // khai báo khoảng cách ngày người dùng query để điều hướng API
+  const [diffs, setDiffs] = useState<number>(1)
+
+  // render lần đầu
+  useEffect(() => {
+    const {
+      startresult,
+      endresult,
+      diff,
+    } = handleTime({
+      offset: offsets,
+      unit: active,
+      start,
+      end,
+    });
+    setStart(startresult);
+    setEnd(endresult);
+    setDiffs(diff);
+  }, []);
+
+  // đoạn này tức là setStart và setEnd khi mà eChange thay đổi thiết bị có chứa thời gian
+  function handleDevicesChange({housedeviceIds, starttime, endtime}:Payload){
+    setDeviceIds(housedeviceIds);
+    if (starttime !== undefined && endtime !== undefined) {
+      const start_time = `${starttime}T00:00:00`;
+      const end_time = `${endtime}T23:59:59`;
+      // gọi hàm xử lý thời gian ở component HandleTime
+      const {startresult, endresult, diff} = handleTime({
+        offset: offsets,
+        unit: "free",
+        start: start_time,
+        end: end_time
+      })
+      console.log("ket qua thoi gian", startresult, endresult, diff);
+      setStart(startresult);
+      setEnd(endresult);
+      setDiffs(diff);
+      setActive("free");
+    }
+  }
+
+
+  // khai báo các hàm API theo Object.map
+  const apiMap = {
+    day: graphcallAPI1day,
+    week: graphcallAPI1weekormonth,
+    month: graphcallAPI1weekormonth,
+    free: graphcallAPIcustomize,
+  } as const;
+
+  // Call API để lấy dữ liệu vẽ biểu đồ
+  async function GraphData() {
+    try {
+      console.log("active key", diffs);
+      const callAPI = apiMap[active as keyof typeof apiMap];
+      if(!callAPI) return;
+      const raw = await callAPI({start, end, deviceIds});
+      setApiData(raw);
+    } catch {
+      setApiData([]);
+    }
+  }
+
+  // Querry lần đầu khi vào 
+  useEffect(() => {
+    const deviceId = JSON.parse(localStorage.getItem("deviceId") || "{}") as DeviceMap;
+    if(deviceId) {
+      const entries = Object.entries(deviceId);
+      if(entries.length === 0) return;
+      const [firsthouse,firstdevice] = entries[0];
+      const devicelist = firstdevice.map(d => `${firsthouse}#${d}`);
+      setDeviceIds(devicelist);
+    }
+  }, []);
+
+  useEffect(() => {
+    console.log({
+    start,
+    end,
+    deviceIds,
+    active
+  });
+    if (!start || !end || deviceIds.length === 0) return;
+    GraphData();
+  }, [start, end, deviceIds, active]);
+
   return (
-    <div style={styles.wrapper}>
+    <div style={s.root}>
       <LandscapeOnly />
-      {/* Cột trái: 8% */}
-      <div style={{gap: 10, display: "flex", flexDirection: "column", width: "8%", ...styles.buttonBox }}>
-        <Button label="Back" active={false} onClick={() => router.push("/select_chart")} />
-        <Button label="Change" active={false} onClick={() => alert("Button clicked!")}/>
-        <Button label="Day" active={active==="day"} onClick={() => setActive("day")}/>
-        <Button label="Week" active={active==="week"} onClick={() => setActive("week")}/>
-        <Button label="Month" active={active==="month"} onClick={() => setActive("month")}/>
+
+      {/* ── Sidebar trái ── */}
+      <Sidebar
+        active={active}
+        onBack={() => router.push("/select_chart")}
+        onPeriod={(key) => {setActive(key);
+          const {startresult,endresult,diff,} = handleTime({offset: offsets,unit: key,start,end,});
+          setStart(startresult);
+          setEnd(endresult);
+          setDiffs(diff);
+        }}
+        onOpenModal={() => setOpenModal(true)}
+      />
+
+      <ChangeButton isOpen={openModal} onClose={() => setOpenModal(false)} onTrans={handleDevicesChange} disableStatus={() => {setDisable(true)}}/>
+
+      {/* ── Chart area ── */}
+      <div style={s.chartArea}>
+        <MultiDeviceChart raw={apiData as any} />
       </div>
 
-      {/* Cột phải: 92% */}
-      <div style={{ width: "92%", paddingBottom: "8%", minWidth: 0 }}>
-          <MultiDeviceChart raw={apiData as any} />
-      </div>
-      <Bar label={active} onClick={() => alert("Bar clicked!")}/>
+      {/* ── Bottom bar ── */}
+      <BottomBar label={active} onOffset={(offs) => setOffsets(offs)} onStatus ={disable} starttimestamp={start} endtimestamp={end} diff={diffs} />
+
     </div>
   );
 }
 
-const styles: {
-  wrapper: CSSProperties;
-  buttonBox: CSSProperties;
-} = {
-  wrapper: {
-    display: "flex", // sử dụng flexbox để căn chỉnh nội dung bên trong
-    flexDirection: "row", // xếp phần tử con gồm ButtonBox và ChartBox theo hàng ngang
-    alignItems: "flex-start", // căn phần tử con theo phía trên của container
+const s: { [k: string]: CSSProperties } = {
+  root: {
+    position: "fixed",
+    inset: 0,
+    display: "flex",
+    flexDirection: "row",
+    backgroundColor: "#0F172A",
+    overflow: "hidden",
   },
-
-  buttonBox: {
-    display: "flex", // sử dụng flexbox để căn chỉnh nội dung bên trong
-    flexDirection: "column", // xếp phần tử con gồm các Button theo cột dọc
-
-    justifyContent: "flex-start", // căn phần tử con theo phía bên trái của container
-    alignItems: "flex-start", // căn phần tử con theo phía trên của container
-
-    position: "sticky", // giữ phần tử ở vị trí cố định khi cuộn trang
-    top: 10,
-    height: "fit-content", 
-  }
-}
-
+  chartArea: {
+    flex: 1,
+    minWidth: 0,
+    height: "100vh",
+    overflowY: "auto",
+    paddingBottom: 44,
+  },
+};
