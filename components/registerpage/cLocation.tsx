@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, CSSProperties } from "react";
+import { registercallAPI} from "@/services/callAPI";
 
 interface Props {
   isOpen: boolean
@@ -38,6 +39,23 @@ export default function Location({ isOpen, onClose }: Props) {
     setDevices(map[houseId]); // ở đây phải dùng houseId là giá trị mới nhất, nếu dùng selectHouse thì nó sẽ là giá trị cũ chưa cập nhật
   }
 
+  // Hàm ghép giá trị người dùng đã nhập vào tạo thành array of object
+  async function handleSubmit() {
+    const payload = devices.map((d: string) => {
+      return {
+        deviceId: `${selectHouse}#${d}`,
+        lat: location?.lat || undefined,
+        lng: location?.lng || undefined
+      }
+    });
+    const result = await registercallAPI(payload);
+    if(result) {
+      onClose();
+      alert("位置情報が正常に更新されました!");
+    }
+  }
+  
+
   if(!isOpen) return null
 
   return (
@@ -58,16 +76,19 @@ export default function Location({ isOpen, onClose }: Props) {
           )}
         </div>
         <div style={styles.cardList}>
-          <button style={styles.buttonpick} onClick={() => setShowMap(true)}>Chọn vị trí</button>
+          <button style={styles.buttonpick} onClick={() => setShowMap(true)}>位置を選択</button>
           {location && (
-            <p>Đã chọn: {location.lat.toFixed(6)}, {location.lng.toFixed(6)}</p>
+            <div>
+              <p>緯度: {location.lat.toFixed(6)}</p>
+              <p>経度: {location.lng.toFixed(6)}</p>
+            </div>
           )}
           <LocationPicker isOpen={showMap} onClose={() => setShowMap(false)} onConfirm={(lat, lng) => setLocation({ lat, lng })}/>
         </div>
         {/* thêm nút phía dưới */}
         <div style={styles.wrapped}>
-          <button style={styles.cancelButton} onClick={handleClose}>Cancel</button>
-          <button style={styles.submitButton} onClick={() => alert("send")}>Save</button>
+          <button style={styles.cancelButton} onClick={handleClose}>キャンセル</button>
+          <button style={styles.submitButton} onClick={handleSubmit}>保存</button>
         </div>
       </div>
     </div>
@@ -183,7 +204,7 @@ const styles: {
     height: 48,
     borderRadius: 14,
     border: "none",
-    backgroundColor: "#2563EB",
+    backgroundColor: "#000",
     color: "#FFFFFF",
     fontSize: 15,
     fontWeight: 700,

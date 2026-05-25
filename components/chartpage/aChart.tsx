@@ -132,7 +132,7 @@ export default function MultiDeviceChart({ raw }: { raw: any[] }) {
 }, [raw, devices, metrics])
 
   if (!raw || raw.length === 0) return (
-    <div style={{ padding: 40, textAlign: "center", color: "#94A3B8" }}>Không có dữ liệu</div>
+    <div style={{ padding: 40, textAlign: "center", color: "#94A3B8" }}>データがない</div>
   );
 
   return (

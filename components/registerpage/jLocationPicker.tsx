@@ -102,11 +102,11 @@ export default function LocationPicker({ isOpen, onClose, onConfirm }: Props) {
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`,
-        { headers: { "Accept-Language": "vi,en" } }
+        { headers: { "Accept-Language": "jp,en" } }
       )
       const data = await res.json()
       if (data.length === 0) {
-        setSearchError("Không tìm thấy địa chỉ, thử từ khoá khác")
+        setSearchError("住所が見つかりません。別のキーワードをお試しください。")
       } else {
         setCoord({ lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) })
       }
@@ -135,14 +135,14 @@ export default function LocationPicker({ isOpen, onClose, onConfirm }: Props) {
 
           {/* ── Header ── */}
           <div style={s.header}>
-            <span style={s.title}>📍 Chọn vị trí</span>
+            <span style={s.title}>📍 位置を選択</span>
             <button style={s.closeBtn} onClick={handleClose}>✕</button>
           </div>
 
           {/* ── Map ── */}
           <div style={s.mapWrap}>
             <DynamicMap coord={coord} onMapClick={setCoord} />
-            <div style={s.hint}>Click lên bản đồ để chấm vị trí</div>
+            <div style={s.hint}>地図をクリックして位置を指定</div>
           </div>
 
           {/* ── GPS button ── */}
@@ -152,17 +152,17 @@ export default function LocationPicker({ isOpen, onClose, onConfirm }: Props) {
             disabled={gpsStatus === "loading"}
           >
             {gpsStatus === "loading" && <span style={s.spinner} />}
-            {gpsStatus === "idle" && "🎯 Lấy vị trí hiện tại"}
-            {gpsStatus === "loading" && "Đang lấy vị trí..."}
-            {gpsStatus === "success" && "✅ Đã lấy vị trí"}
-            {gpsStatus === "denied" && "⚠️ Bị từ chối — nhập địa chỉ bên dưới"}
+            {gpsStatus === "idle" && "🎯 現在位置を取得"}
+            {gpsStatus === "loading" && "位置情報を取得中"}
+            {gpsStatus === "success" && "✅ 位置情報を取得済み"}
+            {gpsStatus === "denied" && "⚠️ 拒否されました — 下の住所を入力してください "}
           </button>
 
           {/* ── Address search (backup) ── */}
           <div style={s.searchRow}>
             <input
               style={s.input}
-              placeholder="Nhập địa chỉ (ví dụ: Shibuya, Tokyo)"
+              placeholder="住所を入力（例：東京…）"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearchAddress()}
@@ -172,7 +172,7 @@ export default function LocationPicker({ isOpen, onClose, onConfirm }: Props) {
               onClick={handleSearchAddress}
               disabled={searchLoading}
             >
-              {searchLoading ? "..." : "Tìm"}
+              {searchLoading ? "..." : "検索"}
             </button>
           </div>
           {searchError && <p style={s.error}>{searchError}</p>}
@@ -180,21 +180,21 @@ export default function LocationPicker({ isOpen, onClose, onConfirm }: Props) {
           {/* ── Coordinates display ── */}
           <div style={s.coordBox}>
             <div style={s.coordItem}>
-              <span style={s.coordLabel}>Vĩ độ (Lat)</span>
+              <span style={s.coordLabel}>緯度 (Lat)</span>
               <span style={s.coordValue}>{coord.lat.toFixed(6)}</span>
             </div>
             <div style={s.divider} />
             <div style={s.coordItem}>
-              <span style={s.coordLabel}>Kinh độ (Lng)</span>
+              <span style={s.coordLabel}>経度 (Lng)</span>
               <span style={s.coordValue}>{coord.lng.toFixed(6)}</span>
             </div>
           </div>
 
           {/* ── Actions ── */}
           <div style={s.actions}>
-            <button style={s.cancelBtn} onClick={handleClose}>Huỷ</button>
+            <button style={s.cancelBtn} onClick={handleClose}>キャンセル</button>
             <button style={s.confirmBtn} onClick={() => { onConfirm(coord.lat, coord.lng); handleClose() }}>
-              Xác nhận
+              確認
             </button>
           </div>
 

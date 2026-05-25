@@ -81,8 +81,8 @@ export default function AdditionTemp({ isOpen, onClose }: Props) {
         </div>
         {/* thêm nút phía dưới */}
         <div style={styles.wrapped}>
-          <button style={styles.cancelButton} onClick={handleClose}>Cancel</button>
-          <button style={styles.submitButton} onClick={() => alert("send")}>Save</button>
+          <button style={styles.cancelButton} onClick={handleClose}>キャンセル</button>
+          <button style={styles.submitButton} onClick={() => alert("send")}>保存</button>
         </div>
       </div>
     </div>
@@ -238,7 +238,7 @@ const styles: {
     height: 48,
     borderRadius: 14,
     border: "none",
-    backgroundColor: "#2563EB",
+    backgroundColor: "#000",
     color: "#FFFFFF",
     fontSize: 15,
     fontWeight: 700,

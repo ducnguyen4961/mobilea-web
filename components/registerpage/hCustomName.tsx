@@ -36,6 +36,10 @@ export default function CustomName({ isOpen, onClose }: Props) {
     setDevices(map[houseId]); // ở đây phải dùng houseId là giá trị mới nhất, nếu dùng selectHouse thì nó sẽ là giá trị cũ chưa cập nhật
   }
 
+  // Hàm submit gửi lên Lambda
+  console.log("Custom House Name:", customhousename);
+  console.log("Custom Device Name:", customdevicename);
+
   if(!isOpen) return null
 
   return (
@@ -67,7 +71,7 @@ export default function CustomName({ isOpen, onClose }: Props) {
               <div style={styles.params}>
                 <div style={styles.field}>
                   <label style={styles.label}> デバイス名 </label>
-                  <input style={styles.input} type="number" value={customdevicename[d] || ""} onChange={(e) => setCustomdevicename({...customdevicename,[d]: e.target.value,})}/>
+                  <input style={styles.input} type="text" value={customdevicename[d] || ""} onChange={(e) => setCustomdevicename({...customdevicename,[d]: e.target.value,})}/>
                 </div>
               </div>
             </div>
@@ -76,8 +80,8 @@ export default function CustomName({ isOpen, onClose }: Props) {
         </div>
         {/* thêm nút phía dưới */}
         <div style={styles.wrapped}>
-          <button style={styles.cancelButton} onClick={handleClose}>Cancel</button>
-          <button style={styles.submitButton} onClick={() => alert("send")}>Save</button>
+          <button style={styles.cancelButton} onClick={handleClose}>キャンセル</button>
+          <button style={styles.submitButton} onClick={() => alert("send")}>保存</button>
         </div>
       </div>
     </div>
@@ -249,7 +253,7 @@ const styles: {
     height: 48,
     borderRadius: 14,
     border: "none",
-    backgroundColor: "#2563EB",
+    backgroundColor: "#000",
     color: "#FFFFFF",
     fontSize: 15,
     fontWeight: 700,

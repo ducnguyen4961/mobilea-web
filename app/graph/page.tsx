@@ -11,7 +11,7 @@ import ChangeButton from "@/components/chartpage/eChange";
 import handleTime from "@/components/chartpage/fHandleTime";
 
 // import API để lấy dữ liệu vẽ biểu đồ trong 1 ngày
-import { graphcallAPI1day, graphcallAPI1weekormonth, graphcallAPIcustomize } from "@/services/callAPI";
+import { graphcallAPI1minute, graphcallAPI30mins, graphcallAPI1hour, graphcallAPIcustomize } from "@/services/callAPI";
 
 type DeviceMap = Record<string, string[]>;
 type Payload = {
@@ -84,20 +84,38 @@ export default function GraphPage() {
 
   // khai báo các hàm API theo Object.map
   const apiMap = {
-    day: graphcallAPI1day,
-    week: graphcallAPI1weekormonth,
-    month: graphcallAPI1weekormonth,
+    day: graphcallAPI1minute,
+    week: graphcallAPI30mins,
+    month: graphcallAPI30mins,
     free: graphcallAPIcustomize,
   } as const;
 
   // Call API để lấy dữ liệu vẽ biểu đồ
   async function GraphData() {
     try {
-      console.log("active key", diffs);
-      const callAPI = apiMap[active as keyof typeof apiMap];
-      if(!callAPI) return;
-      const raw = await callAPI({start, end, deviceIds});
-      setApiData(raw);
+      if(active ==="free") {
+        if(diffs === 1) { 
+          const raw = await graphcallAPI1minute({start, end, deviceIds});
+          setApiData(raw);
+        }
+        else if(diffs > 1 && diffs <= 31) {
+          const raw = await graphcallAPI30mins({start, end, deviceIds});
+          setApiData(raw);
+        }
+        else if(diffs > 31 && diffs <= 60) {
+          const raw = await graphcallAPI1hour({start, end, deviceIds});
+          setApiData(raw);
+        }
+        else if(diffs > 60) {
+          const raw = await graphcallAPIcustomize({start, end, deviceIds});
+          setApiData(raw);
+        }
+      } else {
+        const callAPI = apiMap[active as keyof typeof apiMap];
+        if(!callAPI) return;
+        const raw = await callAPI({start, end, deviceIds});
+        setApiData(raw);
+      }
     } catch {
       setApiData([]);
     }

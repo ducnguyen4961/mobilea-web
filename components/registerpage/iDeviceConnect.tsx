@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, CSSProperties } from "react"
+import { registercallAPI} from "@/services/callAPI";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Props {
@@ -69,9 +70,18 @@ export default function DeviceConnector({ isOpen, onClose }: Props) {
     }
     return result
   }
-
-  function handleConfirm() {
-    onClose()
+  // Hàm gửi lên API
+  async function handleConfirm() {
+    const result = buildOutput()
+    const formatted = Object.entries(result).map(([key, value]) => ({
+      deviceId: key,
+      connectedId: value,
+    }))
+    const response = await registercallAPI(formatted)
+    if(response) {
+      onClose();
+      alert("デバイスの接続に成功しました！")
+    }
   }
 
   const output = buildOutput()
@@ -93,8 +103,8 @@ export default function DeviceConnector({ isOpen, onClose }: Props) {
         {/* ── House selector ── */}
         <div style={{ position: "relative" }}>
           <div style={s.selectBox} onClick={() => setHouseOpen(!houseOpen)}>
-            <span>🏠 {selectedHouse}</span>
-            <span style={{ fontSize: 11, color: "#94A3B8" }}>▼</span>
+            <span> {selectedHouse}</span>
+            <span style={{transform: houseOpen? "rotate(180deg)" : "rotate(0deg)",transition: "0.2s",}}>▼</span>
           </div>
           {houseOpen && (
             <div style={s.dropdown}>

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, CSSProperties } from "react"
+import { registercallAPI} from "@/services/callAPI";
 
 interface Props {
   isOpen: boolean
@@ -48,6 +49,26 @@ export default function Cultivation({ isOpen, onClose }: Props) {
     setSelectHouse(houseId);
     setDevices(map[houseId]); // ở đây phải dùng houseId là giá trị mới nhất, nếu dùng selectHouse thì nó sẽ là giá trị cũ chưa cập nhật
   }
+    // Hàm ghép các giá trị người dùng đã nhập vào tạo thành array of object
+  async function handleSubmit() {
+    const payload = devices.map((d: string) => ({
+      deviceId: `${selectHouse}#${d}`,
+      area: area[d] || null,
+      beds: beds[d] || null,
+      plant: plant[d] || null,
+      row: row[d] || null,
+      variety: variety[d] || null,
+      planting: planting[d] || null,
+      multicolor: multicolor[d] || null,
+    }));
+    const result = await registercallAPI(payload);
+    if (result) {
+      onClose();
+      alert("栽培情報の更新に成功しました!");
+    }
+  }
+
+
 
   if(!isOpen) return null
 
@@ -142,8 +163,8 @@ export default function Cultivation({ isOpen, onClose }: Props) {
         </div>
         {/* thêm nút phía dưới */}
         <div style={styles.wrapped}>
-          <button style={styles.cancelButton} onClick={handleClose}>Cancel</button>
-          <button style={styles.submitButton} onClick={() => alert("send")}>Save</button>
+          <button style={styles.cancelButton} onClick={handleClose}>キャンセル</button>
+          <button style={styles.submitButton} onClick={handleSubmit}>保存</button>
         </div>
       </div>
     </div>
@@ -339,7 +360,7 @@ const styles: {
     height: 48,
     borderRadius: 14,
     border: "none",
-    backgroundColor: "#2563EB",
+    backgroundColor: "#000",
     color: "#FFFFFF",
     fontSize: 15,
     fontWeight: 700,
